@@ -156,7 +156,7 @@ func Login(c *gin.Context) {
 // Route: /logout
 // Method: POST
 func Logout(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	id, err := strconv.ParseInt(c.PostForm("user_id"), 10, 64)
 	if err != nil {
 		JsonWithError(c, NewUserError("100001", "非法请求"))
 		return
@@ -184,40 +184,6 @@ func Logout(c *gin.Context) {
 	Json(c, "0", "OK")
 }
 
-// Route: /reset_pwd
-// Method: POST
-func ResetPassword(c *gin.Context) {
-	var req struct {
-		Name     string `form:"name" json:"name" binding:"required"`
-		Password string `form:"password" json:"password" binding:"required"`
-	}
-
-	err := c.Bind(&req)
-	if err != nil {
-		JsonWithError(c, NewUserError("200001", "缺少必要参数"))
-		return
-	}
-
-	user, err := models.GetUserByName(req.Name)
-	if err != nil {
-		JsonWithError(c, NewUserError("100001", "系统错误"))
-		return
-	}
-
-	if user == nil {
-		JsonWithError(c, NewUserError("201002", "无效的用户名"))
-		return
-	}
-
-	user.ResetPassword(req.Password)
-	err = user.Save()
-	if err == nil {
-		Json(c, "0", "重置密码成功，请重新登录")
-	} else {
-		JsonWithError(c, NewUserError("100001", "系统错误"))
-	}
-}
-
 // Route: /users/:user_id
 // Method: GET
 func GetUserInfo(c *gin.Context) {
@@ -239,38 +205,4 @@ func GetUserInfo(c *gin.Context) {
 	}
 
 	JsonWithData(c, "0", "OK", user.BaseInfo())
-}
-
-// Route: /users/:id
-// Method: PATCH
-func UpdateUserInfo(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Params.ByName("user_id"), 10, 64)
-	if err != nil {
-		JsonWithError(c, NewUserError("200001", "无效的参数"))
-		return
-	}
-
-	user, err := models.GetUserById(id)
-	if err != nil {
-		JsonWithError(c, NewUserError("100001", "系统错误"))
-		return
-	}
-	if user == nil {
-		JsonWithError(c, NewUserError("201006", "无效的用户ID"))
-		return
-	}
-
-	user.Icon = c.DefaultPostForm("icon", user.Icon)
-	user.Phone = c.DefaultPostForm("phone", user.Phone)
-	user.Email = c.DefaultPostForm("email", user.Email)
-	user.Desc = c.DefaultPostForm("desc", user.Desc)
-	user.Sex = c.DefaultPostForm("sex", user.Sex)
-
-	err = user.Save()
-	if err != nil {
-		glog.Error(err)
-		JsonWithError(c, NewUserError("100001", "系统错误"))
-		return
-	}
-	JsonWithData(c, "0", "OK", user.Info())
 }

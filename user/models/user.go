@@ -138,7 +138,7 @@ func GetUserById(id int64) (*User, error) {
 func GetUserByName(name string) (*User, error) {
 	user := &User{}
 
-	err := db.Where("deleted=false and name=?", name).First(user).Error
+	err := db.Where("name=?", name).First(user).Error
 	if err == ErrRecordNotFound {
 		return nil, nil
 	} else if err != nil {
@@ -164,6 +164,7 @@ func NewUser(name, password string) (*User, error) {
 		return nil, NewUserError("201005", "用户名已经存在")
 	}
 
+	user = &User{}
 	user.Name = name
 	user.Password, user.Salt = auth.PasswordEncrypt(password)
 
