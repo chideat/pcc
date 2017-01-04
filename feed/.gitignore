@@ -26,3 +26,4 @@ _testmain.go
 logs
 data
 feed
+*.log

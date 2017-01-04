@@ -6,21 +6,33 @@ import (
 	"github.com/chideat/pcc/feed/models"
 	. "github.com/chideat/pcc/feed/routes/utils"
 	"github.com/gin-gonic/gin"
+	"github.com/golang/glog"
 )
 
 // Route: /feeds
 // Method: GET
 func GetFeeds(c *gin.Context) {
-	page, _ := strconv.Atoi(c.Query("page"))
-	if page < 0 {
-		page = 1
-	}
 	count, _ := strconv.Atoi(c.Query("count"))
 	if count < 0 || count > 100 {
 		count = 10
 	}
-	// cursor, _ := strconv.ParseInt(c.Query("cursor"), 10, 64)
+	cursor, _ := strconv.ParseInt(c.Query("cursor"), 10, 64)
 
+	feeds, err := models.GetFeeds(cursor, count)
+	if err != nil {
+		JsonWithError(c, "1", err)
+		return
+	}
+	feedsMap := []map[string]interface{}{}
+	for i := len(feeds) - 1; i >= 0; i-- {
+		feedMap, err := feeds[i].Map()
+		if err != nil {
+			glog.Error(err)
+			continue
+		}
+		feedsMap = append(feedsMap, feedMap)
+	}
+	JsonWithData(c, "0", "OK", feedsMap)
 }
 
 // Route: /feeds/:id

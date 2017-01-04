@@ -4,6 +4,7 @@ import (
 	"github.com/chideat/glog"
 	. "github.com/chideat/pcc/feed/modules/config"
 	"github.com/jinzhu/gorm"
+	_ "github.com/lib/pq"
 )
 
 var (

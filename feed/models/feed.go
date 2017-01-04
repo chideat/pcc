@@ -72,3 +72,14 @@ func GetFeedById(id int64) (*Feed, error) {
 		return &feed, nil
 	}
 }
+
+func GetFeeds(cursor int64, limit int) ([]*Feed, error) {
+	feeds := []*Feed{}
+
+	err := db.Where("deleted=false and created_utc>?", cursor).Order("created_utc asc").Limit(limit).Find(&feeds).Error
+	if err != nil {
+		return nil, err
+	} else {
+		return feeds, nil
+	}
+}
