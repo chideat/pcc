@@ -2,6 +2,7 @@ package models
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"github.com/chideat/pcc/sdk/pig"
@@ -11,8 +12,26 @@ import (
 	. "github.com/chideat/pcc/pig/models"
 )
 
+func (action *LikeAction) _BeforeSave() error {
+	if action.UserId == 0 {
+		return fmt.Errorf("invalid user id")
+	}
+	if action.Target == 0 {
+		return fmt.Errorf("invalid target id")
+	}
+
+	oldAction, err := GetLikeActionByUserAndTarget(action.UserId, action.Target)
+	if err != nil || (oldAction != nil && oldAction.Id != action.Id) {
+		return fmt.Errorf("重复点赞")
+	}
+	return nil
+}
+
 func (action *LikeAction) Save() error {
-	var err error
+	err := action._BeforeSave()
+	if err != nil {
+		return err
+	}
 
 	if action.Id == 0 {
 		action.Id, err = pig.Int64(TYPE_ACTION)
@@ -35,7 +54,7 @@ func (action *LikeAction) Delete() error {
 	return action.Save()
 }
 
-func (action *LikeAction) Output() (map[string]interface{}, error) {
+func (action *LikeAction) Map() (map[string]interface{}, error) {
 	output := map[string]interface{}{}
 	output["id"] = action.Id
 	output["target"] = action.Target

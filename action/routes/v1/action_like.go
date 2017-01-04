@@ -41,28 +41,42 @@ func FeedLike(c *gin.Context) {
 		Json(c, "200001", "无效的参数")
 		return
 	}
-	mood, ok := models.LikeMood_value[c.Params.ByName("mood")]
-	if !ok {
-		Json(c, "200001", "invalid mood")
+	moodStr := c.PostForm("mood")
+	mood, _ := models.LikeMood_value[moodStr]
+
+	action, err := models.GetLikeActionByUserAndTarget(userId, target)
+	if err != nil {
+		Json(c, "100001", err.Error())
 		return
 	}
+	if action == nil {
+		action = models.NewLikeAction(userId, target, models.LikeMood(mood))
+	} else {
+		action.Mood = models.LikeMood(mood)
+		action.Deleted = false
+	}
 
-	action := models.NewLikeAction(userId, target, models.LikeMood(mood))
 	err = action.Save()
 	if err != nil {
-		Json(c, "100001", "点赞失败")
+		Json(c, "100001", err.Error())
 		return
 	}
 
-	Json(c, "0", "OK")
-
-	c.Next()
-
-	data, _ := proto.Marshal(&models.Request{Method: models.RequestMethod_Add, Data: action.Bytes()})
-	err = producer.Publish("pcc.action", data)
+	actionMap, err := action.Map()
 	if err != nil {
 		glog.Error(err)
 	}
+	JsonWithData(c, "0", "OK", actionMap)
+
+	c.Next()
+
+	go func() {
+		data, _ := proto.Marshal(&models.Request{Method: models.RequestMethod_Add, Data: action.Bytes()})
+		err = producer.Publish("pcc.action", data)
+		if err != nil {
+			glog.Error(err)
+		}
+	}()
 }
 
 // Route: /feeds/:id/like
@@ -81,25 +95,27 @@ func FeedUnlike(c *gin.Context) {
 
 	action, err := models.GetLikeActionByUserAndTarget(userId, target)
 	if err != nil {
-		Json(c, "100001", "点赞失败")
+		Json(c, "100001", "取消点赞失败")
 		return
 	}
 	if action == nil {
-		Json(c, "100001", "用户没有关注过")
+		Json(c, "100001", "你为点过赞")
 		return
 	}
 	err = action.Delete()
 	if err != nil {
-		Json(c, "100001", "点赞失败")
+		Json(c, "100001", "取消点赞失败")
 		return
 	}
 	Json(c, "0", "OK")
 
 	c.Next()
 
-	data, _ := proto.Marshal(&models.Request{Method: models.RequestMethod_Delete, Data: action.Bytes()})
-	err = producer.Publish("pcc.action", data)
-	if err != nil {
-		glog.Error(err)
-	}
+	go func() {
+		data, _ := proto.Marshal(&models.Request{Method: models.RequestMethod_Delete, Data: action.Bytes()})
+		err = producer.Publish("pcc.action", data)
+		if err != nil {
+			glog.Error(err)
+		}
+	}()
 }

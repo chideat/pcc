@@ -14,8 +14,8 @@ func init() {
 
 	group := Handler.Group("/api/v1")
 	{
-		group.POST("/feed/:id/like", v1.FeedLike)
-		group.DELETE("/feed/:id/like", v1.FeedLike)
+		group.POST("/feeds/:id/like", v1.FeedLike)
+		group.DELETE("/feeds/:id/like", v1.FeedUnlike)
 		// group.GET("/users/:user_id/following", v1.UserFollowing)
 		// group.POST("/users/:user_id/follow", v1.Auth, v1.FollowUser)
 		// group.DELETE("/users/:user_id/follow", v1.Auth, v1.UnfollowUser)

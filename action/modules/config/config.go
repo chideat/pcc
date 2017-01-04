@@ -25,7 +25,7 @@ var Config struct {
 	Version     string `yaml:"version"`
 	HttpAddress string `yaml:"http_address"`
 	LogPath     string `yaml:"log_dir"`
-	Database    string `yaml:"db"`
+	Database    string `yaml:"database"`
 	Queue       struct {
 		NsqdAddress    string `yaml:"nsqd_address"`
 		LookupdAddress string `yaml:"lookupd_address"`

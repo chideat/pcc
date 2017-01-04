@@ -4,6 +4,7 @@ import (
 	"github.com/chideat/glog"
 	. "github.com/chideat/pcc/action/modules/config"
 	"github.com/jinzhu/gorm"
+	_ "github.com/lib/pq"
 )
 
 var (
@@ -16,7 +17,7 @@ func init() {
 
 	if db, err = gorm.Open("postgres", Config.Database); err == nil {
 		db.SingularTable(true)
-		db.LogMode(false)
+		// db.LogMode(false)
 	} else {
 		glog.Panic(err)
 	}
@@ -29,4 +30,6 @@ func init() {
 		}
 	}
 	db.AutoMigrate(&LikeAction{})
+
+	db.Model(&LikeAction{}).AddUniqueIndex("idx_like_user_target", "user_id", "target")
 }
