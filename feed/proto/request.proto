@@ -1,0 +1,17 @@
+syntax="proto3";
+
+package models;
+
+enum RequestMethod {
+    _       = 0;
+    Add     = 1;
+    Delete  = 2;
+    Update  = 3;
+}
+
+message Request {
+    int64         id      = 1;
+    RequestMethod method  = 2;
+
+    bytes         data    = 6;
+}

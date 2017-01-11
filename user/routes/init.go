@@ -17,7 +17,6 @@ func init() {
 		group.POST("/register", v1.Register)
 		group.POST("/login", v1.Login)
 		group.POST("/logout", v1.Logout)
-		group.POST("/reset_pwd", v1.Auth, v1.ResetPassword)
 		group.GET("/users/:user_id", v1.GetUserInfo)
 	}
 }

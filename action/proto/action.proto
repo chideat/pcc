@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+package models;
+
+enum LikeMood {
+    unknown = 0;
+	like    = 1;
+	love    = 2;
+	haha    = 3;
+	wow     = 4;
+	sad     = 5;
+	angry   = 6;
+}
+
+
+message LikeAction {
+    int64      id           = 1;
+    int64      user_id      = 2;
+    int64      target       = 3;
+    LikeMood   mood         = 4;
+
+    int64      created_utc  = 14;
+    int64      modified_utc = 15;
+    bool       deleted      = 16;
+    int64      deleted_utc  = 17;
+}

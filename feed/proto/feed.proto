@@ -1,0 +1,20 @@
+syntax="proto3";
+
+package models;
+
+
+message Feed {
+    int64 id      = 1;
+    int64 user_id = 2;
+
+    string data   = 6;
+
+    // action count
+    int64  like_count   = 11;
+    int64  share_count  = 12;
+
+    int64  created_utc  = 14;
+    int64  modified_utc = 15;
+    bool   deleted      = 16;
+    int64  deleted_utc  = 17;
+}
