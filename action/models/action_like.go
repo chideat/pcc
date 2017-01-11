@@ -81,6 +81,10 @@ func (action *LikeAction) Delete() error {
 	return action.Save()
 }
 
+func (action *LikeAction) UserInfo() (map[string]interface{}, error) {
+	return user.UserBaseInfo(action.UserId)
+}
+
 func (action *LikeAction) Map() (map[string]interface{}, error) {
 	output := map[string]interface{}{}
 	output["id"] = action.Id
@@ -133,6 +137,33 @@ func GetLikeActionByUserAndTarget(userId, target int64) (*LikeAction, error) {
 	} else {
 		return &action, nil
 	}
+}
+
+func GetLikeActions(target int64, mood LikeMood, count int) ([]*LikeAction, int, error) {
+	var (
+		total   int
+		actions []*LikeAction = []*LikeAction{}
+	)
+
+	_db_ := db.Model(&LikeAction{}).Where("deleted=false and target=?", target)
+	if mood != LikeMood_unknown {
+		_db_ = _db_.Where("mood=?", mood)
+	}
+	err := _db_.Order("modified_utc desc").Limit(count).Find(&actions).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	_db_ = db.Model(&LikeAction{}).Where("deleted=false and target=?", target)
+	if mood != LikeMood_unknown {
+		_db_ = _db_.Where("mood=?", mood)
+	}
+	err = _db_.Count(&total).Error
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return actions, total, nil
 }
 
 func NewLikeAction(userId, target int64, mood LikeMood) (*LikeAction, error) {

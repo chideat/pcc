@@ -55,7 +55,6 @@ func (handler *ActionHandler) HandleMessage(msg *nsq.Message) error {
 		glog.Error("invalid like action with empty id")
 		return nil
 	}
-	glog.Info(likeAction, req.Method)
 
 	feed, err := models.GetFeedById(likeAction.Target)
 	if err != nil {

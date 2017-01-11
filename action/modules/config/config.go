@@ -45,6 +45,8 @@ func init() {
 			panic("Please specify app's name in config file.")
 		}
 
+		Conf.Model = os.Getenv("DEBUG")
+
 		// check log path
 		if logDirInfo, err := os.Stat(Conf.LogPath); err == nil {
 			if !logDirInfo.IsDir() {

@@ -3,12 +3,13 @@ syntax = "proto3";
 package models;
 
 enum LikeMood {
-	like    = 0;
-	love    = 1;
-	haha    = 2;
-	wow     = 3;
-	sad     = 4;
-	angry   = 5;
+    unknown = 0;
+	like    = 1;
+	love    = 2;
+	haha    = 3;
+	wow     = 4;
+	sad     = 5;
+	angry   = 6;
 }
 
 
