@@ -28,7 +28,7 @@ func Version() {
 }
 
 func main() {
-	httpAddr := Config.HttpAddress
+	httpAddr := Conf.HttpAddress
 	flag.StringVar(&httpAddr, "httpaddr", httpAddr, "http address")
 	flag.BoolVar(&version, "version", false, "version info")
 
@@ -44,14 +44,14 @@ func main() {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 
-	Config.Model = os.Getenv("DEBUG")
+	Conf.Model = os.Getenv("DEBUG")
 
 	go func() {
 		time.Sleep(time.Millisecond * 50)
 		// record pid file
-		pidFilePath := path.Join(Config.LogPath, Config.Name+".pid")
-		if Config.Model == "debug" {
-			pidFilePath = path.Join(Config.LogPath, Config.Name+"_debug.pid")
+		pidFilePath := path.Join(Conf.LogPath, Conf.Name+".pid")
+		if Conf.Model == "debug" {
+			pidFilePath = path.Join(Conf.LogPath, Conf.Name+"_debug.pid")
 		}
 		pid := []byte(fmt.Sprintf("%d", os.Getpid()))
 		ioutil.WriteFile(pidFilePath, pid, 0666)
@@ -62,9 +62,9 @@ func main() {
 		os.Exit(0)
 	}()
 
-	logFilePath := path.Join(Config.LogPath, "access.log")
-	if Config.Model == "debug" {
-		logFilePath = path.Join(Config.LogPath, "access_debug.log")
+	logFilePath := path.Join(Conf.LogPath, "access.log")
+	if Conf.Model == "debug" {
+		logFilePath = path.Join(Conf.LogPath, "access_debug.log")
 	}
 	if logFile, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666); err == nil {
 		hd := handlers.CombinedLoggingHandler(logFile, handlers.ProxyHeaders(routes.Handler))

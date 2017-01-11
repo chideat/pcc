@@ -5,8 +5,8 @@ import (
 	"time"
 
 	"github.com/chideat/glog"
-	"github.com/chideat/pcc/action/models"
-	. "github.com/chideat/pcc/action/modules/config"
+	"github.com/chideat/pcc/feed/models"
+	. "github.com/chideat/pcc/feed/modules/config"
 	"github.com/golang/protobuf/proto"
 	"github.com/nsqio/go-nsq"
 )
@@ -20,8 +20,8 @@ func init() {
 
 	// config
 	config := nsq.NewConfig()
-	config.MaxAttempts = 3
-	consumer, err = nsq.NewConsumer("pcc.action_like", "default", config)
+	config.MaxAttempts = 2
+	consumer, err = nsq.NewConsumer("pcc.action_like", "feed", config)
 	if err != nil {
 		panic(err)
 	}
@@ -55,16 +55,29 @@ func (handler *ActionHandler) HandleMessage(msg *nsq.Message) error {
 		glog.Error("invalid like action with empty id")
 		return nil
 	}
+	glog.Info(likeAction, req.Method)
+
+	feed, err := models.GetFeedById(likeAction.Target)
+	if err != nil {
+		glog.Error(err)
+		return nil
+	}
+	if feed == nil {
+		glog.Error("feed with id %d not exists", likeAction.Target)
+		return nil
+	}
 
 	switch req.Method {
 	case models.RequestMethod_Add:
-		likeAction.Deleted = false
-		err = likeAction.Create()
+		err = feed.Like()
 	case models.RequestMethod_Update:
-		likeAction.Deleted = false
-		err = likeAction.Update()
+		if likeAction.Deleted {
+			err = feed.Like()
+		}
 	case models.RequestMethod_Delete:
-		err = likeAction.Delete()
+		err = feed.CancelLike()
+	default:
+		err = fmt.Errorf("unknow type %s", req.Method)
 	}
 
 	if err != nil {
@@ -91,8 +104,8 @@ func (handler *ActionHandler) LogFailedMessage(msg *nsq.Message) {
 
 	err, ok := handler.errorMessages[likeAction.Id]
 	if ok {
-		glog.Error("process action %d failed with error %s", likeAction.Id, err.Error())
+		glog.Error("process like action %d failed with error %s", likeAction.Id, err.Error())
 	} else {
-		glog.Error("process action %d failed with unknown error", likeAction.Id)
+		glog.Error("process like action %d failed with unknown error", likeAction.Id)
 	}
 }

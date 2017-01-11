@@ -15,7 +15,7 @@ var (
 func init() {
 	var err error
 
-	if db, err = gorm.Open("postgres", Config.Database); err == nil {
+	if db, err = gorm.Open("postgres", Conf.Database); err == nil {
 		db.SingularTable(true)
 		// db.LogMode(false)
 	} else {

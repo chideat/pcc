@@ -15,11 +15,17 @@ var (
 func init() {
 	var err error
 
-	if db, err = gorm.Open("postgres", Conf.Database); err == nil {
+	db, err = gorm.Open("postgres", Conf.Database)
+	if err == nil {
 		db.SingularTable(true)
-		db.LogMode(false)
 	} else {
 		glog.Panic(err)
+	}
+
+	if Conf.Model == "debug" {
+		db.LogMode(true)
+	} else {
+		db.LogMode(false)
 	}
 
 	// TODO

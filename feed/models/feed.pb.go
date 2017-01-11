@@ -2,15 +2,6 @@
 // source: feed.proto
 // DO NOT EDIT!
 
-/*
-Package models is a generated protocol buffer package.
-
-It is generated from these files:
-	feed.proto
-
-It has these top-level messages:
-	Feed
-*/
 package models
 
 import proto "github.com/golang/protobuf/proto"
@@ -21,12 +12,6 @@ import math "math"
 var _ = proto.Marshal
 var _ = fmt.Errorf
 var _ = math.Inf
-
-// This is a compile-time assertion to ensure that this generated file
-// is compatible with the proto package it is being compiled against.
-// A compilation error at this line likely means your copy of the
-// proto package needs to be updated.
-const _ = proto.ProtoPackageIsVersion2 // please upgrade the proto package
 
 type Feed struct {
 	Id     int64  `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
@@ -44,15 +29,78 @@ type Feed struct {
 func (m *Feed) Reset()                    { *m = Feed{} }
 func (m *Feed) String() string            { return proto.CompactTextString(m) }
 func (*Feed) ProtoMessage()               {}
-func (*Feed) Descriptor() ([]byte, []int) { return fileDescriptor0, []int{0} }
+func (*Feed) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{0} }
+
+func (m *Feed) GetId() int64 {
+	if m != nil {
+		return m.Id
+	}
+	return 0
+}
+
+func (m *Feed) GetUserId() int64 {
+	if m != nil {
+		return m.UserId
+	}
+	return 0
+}
+
+func (m *Feed) GetData() string {
+	if m != nil {
+		return m.Data
+	}
+	return ""
+}
+
+func (m *Feed) GetLikeCount() int64 {
+	if m != nil {
+		return m.LikeCount
+	}
+	return 0
+}
+
+func (m *Feed) GetShareCount() int64 {
+	if m != nil {
+		return m.ShareCount
+	}
+	return 0
+}
+
+func (m *Feed) GetCreatedUtc() int64 {
+	if m != nil {
+		return m.CreatedUtc
+	}
+	return 0
+}
+
+func (m *Feed) GetModifiedUtc() int64 {
+	if m != nil {
+		return m.ModifiedUtc
+	}
+	return 0
+}
+
+func (m *Feed) GetDeleted() bool {
+	if m != nil {
+		return m.Deleted
+	}
+	return false
+}
+
+func (m *Feed) GetDeletedUtc() int64 {
+	if m != nil {
+		return m.DeletedUtc
+	}
+	return 0
+}
 
 func init() {
 	proto.RegisterType((*Feed)(nil), "models.Feed")
 }
 
-func init() { proto.RegisterFile("feed.proto", fileDescriptor0) }
+func init() { proto.RegisterFile("feed.proto", fileDescriptor1) }
 
-var fileDescriptor0 = []byte{
+var fileDescriptor1 = []byte{
 	// 212 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0x3c, 0x90, 0xb1, 0x4e, 0xc3, 0x30,
 	0x10, 0x86, 0x95, 0x50, 0xb9, 0xf4, 0x52, 0x15, 0xb8, 0x05, 0x2f, 0x88, 0xc0, 0x94, 0x89, 0x85,

@@ -6,6 +6,7 @@ import (
 
 	. "github.com/chideat/pcc/pig/models"
 	"github.com/chideat/pcc/sdk/pig"
+	"github.com/jinzhu/gorm"
 )
 
 func (feed *Feed) _BeforeSave() error {
@@ -46,6 +47,14 @@ func (feed *Feed) Delete() error {
 	feed.DeletedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
 
 	return feed.Save()
+}
+
+func (feed *Feed) Like() error {
+	return db.Model(feed).UpdateColumn("like_count", gorm.Expr("like_count+?", 1)).Error
+}
+
+func (feed *Feed) CancelLike() error {
+	return db.Model(feed).UpdateColumn("like_count", gorm.Expr("like_count-?", 1)).Error
 }
 
 func (feed *Feed) Map() (map[string]interface{}, error) {

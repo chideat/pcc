@@ -27,12 +27,39 @@ func (action *LikeAction) _BeforeSave() error {
 	return nil
 }
 
+func (action *LikeAction) Create() error {
+	err := action._BeforeSave()
+	if err != nil {
+		return err
+	}
+
+	action.ModifiedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
+	if action.Id == 0 {
+		action.Id, err = pig.Int64(TYPE_ACTION)
+		if err != nil {
+			return errors.New("系统错误")
+		}
+		action.CreatedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
+	}
+	return db.Create(action).Error
+}
+
+func (action *LikeAction) Update() error {
+	err := action._BeforeSave()
+	if err != nil {
+		return err
+	}
+	action.ModifiedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
+	return db.Save(action).Error
+}
+
 func (action *LikeAction) Save() error {
 	err := action._BeforeSave()
 	if err != nil {
 		return err
 	}
 
+	action.ModifiedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
 	if action.Id == 0 {
 		action.Id, err = pig.Int64(TYPE_ACTION)
 		if err != nil {
@@ -76,7 +103,7 @@ func (action *LikeAction) Bytes() []byte {
 	return data
 }
 
-func GetActionById(id int64) (*LikeAction, error) {
+func GetLikeActionById(id int64) (*LikeAction, error) {
 	if TYPE_ACTION != uint8(id&255) {
 		return nil, errors.New("invalid id")
 	}
@@ -108,12 +135,20 @@ func GetLikeActionByUserAndTarget(userId, target int64) (*LikeAction, error) {
 	}
 }
 
-func NewLikeAction(userId, target int64, mood LikeMood) *LikeAction {
-	action := LikeAction{}
+func NewLikeAction(userId, target int64, mood LikeMood) (*LikeAction, error) {
+	var (
+		action = LikeAction{}
+		err    error
+	)
 
+	action.Id, err = pig.Int64(TYPE_ACTION)
+	if err != nil {
+		return nil, err
+	}
 	action.UserId = userId
 	action.Target = target
 	action.Mood = mood
+	action.CreatedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
 
-	return &action
+	return &action, nil
 }

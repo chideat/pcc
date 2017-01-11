@@ -19,7 +19,7 @@ const (
 	CONFIG_DEFAULT_PATH = "conf/app.conf"
 )
 
-var Config struct {
+var Conf struct {
 	Name        string `yaml:"name"`
 	Model       string `yaml:"model"`
 	Version     string `yaml:"version"`
@@ -37,18 +37,18 @@ func init() {
 	// get config file path from cmd line.
 
 	if data, err := ioutil.ReadFile(configFilePath); err == nil {
-		if err := yaml.Unmarshal(data, &Config); err != nil {
+		if err := yaml.Unmarshal(data, &Conf); err != nil {
 			panic(err)
 		}
 
-		if Config.Name == "" {
+		if Conf.Name == "" {
 			panic("Please specify app's name in config file.")
 		}
 
 		// check log path
-		if logDirInfo, err := os.Stat(Config.LogPath); err == nil {
+		if logDirInfo, err := os.Stat(Conf.LogPath); err == nil {
 			if !logDirInfo.IsDir() {
-				panic(fmt.Sprintf("%s is NOT a dir", Config.LogPath))
+				panic(fmt.Sprintf("%s is NOT a dir", Conf.LogPath))
 			}
 		} else {
 			panic(err)

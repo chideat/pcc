@@ -21,7 +21,7 @@ func init() {
 	var err error
 
 	config := nsq.NewConfig()
-	producer, err = nsq.NewProducer(Config.Queue.NsqdAddress, config)
+	producer, err = nsq.NewProducer(Conf.Queue.NsqdAddress, config)
 	if err != nil {
 		glog.Panic(err)
 	}
@@ -31,7 +31,7 @@ func init() {
 // Route: /feeds/:id/like
 // Method: POST
 func FeedLike(c *gin.Context) {
-	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	userId, err := strconv.ParseInt(c.DefaultPostForm("user_id", c.Query("user_id")), 10, 64)
 	if err != nil || TYPE_USER&uint8(255&userId) == 0 {
 		Json(c, "200001", "无效的用户ID")
 		return
@@ -41,7 +41,7 @@ func FeedLike(c *gin.Context) {
 		Json(c, "200001", "无效的参数")
 		return
 	}
-	moodStr := c.PostForm("mood")
+	moodStr := c.DefaultPostForm("mood", c.Query("mood"))
 	mood, _ := models.LikeMood_value[moodStr]
 
 	action, err := models.GetLikeActionByUserAndTarget(userId, target)
@@ -49,40 +49,47 @@ func FeedLike(c *gin.Context) {
 		Json(c, "100001", err.Error())
 		return
 	}
+	method := models.RequestMethod_Add
 	if action == nil {
-		action = models.NewLikeAction(userId, target, models.LikeMood(mood))
+		action, err = models.NewLikeAction(userId, target, models.LikeMood(mood))
+		if err != nil {
+			Json(c, "200001", err.Error())
+			return
+		}
 	} else {
+		// if no change, return directly
+		if action.Mood == models.LikeMood(mood) && !action.Deleted {
+			actionMap, err := action.Map()
+			if err != nil {
+				glog.Error(err)
+			}
+			JsonWithData(c, "0", "OK", actionMap)
+			return
+		}
 		action.Mood = models.LikeMood(mood)
-		action.Deleted = false
+
+		method = models.RequestMethod_Update
 	}
 
-	err = action.Save()
+	// async add
+	rawData, _ := proto.Marshal(&models.Request{Method: method, Data: action.Bytes()})
+	err = producer.Publish("pcc.action_like", rawData)
 	if err != nil {
-		Json(c, "100001", err.Error())
+		glog.Error(err)
+		Json(c, "10001", err.Error())
 		return
 	}
-
 	actionMap, err := action.Map()
 	if err != nil {
 		glog.Error(err)
 	}
 	JsonWithData(c, "0", "OK", actionMap)
-
-	c.Next()
-
-	go func() {
-		data, _ := proto.Marshal(&models.Request{Method: models.RequestMethod_Add, Data: action.Bytes()})
-		err = producer.Publish("pcc.action", data)
-		if err != nil {
-			glog.Error(err)
-		}
-	}()
 }
 
 // Route: /feeds/:id/like
-// Method: POST
+// Method: DELETE
 func FeedUnlike(c *gin.Context) {
-	userId, err := strconv.ParseInt(c.Query("user_id"), 10, 64)
+	userId, err := strconv.ParseInt(c.DefaultPostForm("user_id", c.Query("user_id")), 10, 64)
 	if err != nil || TYPE_USER&uint8(255&userId) == 0 {
 		Json(c, "200001", "无效的用户ID")
 		return
@@ -102,20 +109,12 @@ func FeedUnlike(c *gin.Context) {
 		Json(c, "100001", "你为点过赞")
 		return
 	}
-	err = action.Delete()
+
+	// async delete
+	data, _ := proto.Marshal(&models.Request{Method: models.RequestMethod_Delete, Data: action.Bytes()})
+	err = producer.Publish("pcc.action_like", data)
 	if err != nil {
-		Json(c, "100001", "取消点赞失败")
-		return
+		glog.Error(err)
 	}
 	Json(c, "0", "OK")
-
-	c.Next()
-
-	go func() {
-		data, _ := proto.Marshal(&models.Request{Method: models.RequestMethod_Delete, Data: action.Bytes()})
-		err = producer.Publish("pcc.action", data)
-		if err != nil {
-			glog.Error(err)
-		}
-	}()
 }
