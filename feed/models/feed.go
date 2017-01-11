@@ -6,6 +6,7 @@ import (
 
 	. "github.com/chideat/pcc/pig/models"
 	"github.com/chideat/pcc/sdk/pig"
+	"github.com/chideat/pcc/sdk/user"
 	"github.com/jinzhu/gorm"
 )
 
@@ -58,7 +59,10 @@ func (feed *Feed) CancelLike() error {
 }
 
 func (feed *Feed) Map() (map[string]interface{}, error) {
-	ret := map[string]interface{}{}
+	var (
+		err error
+		ret = map[string]interface{}{}
+	)
 
 	ret["id"] = feed.Id
 	ret["user_id"] = feed.UserId
@@ -66,6 +70,7 @@ func (feed *Feed) Map() (map[string]interface{}, error) {
 	ret["like_count"] = feed.LikeCount
 	ret["created_utc"] = feed.CreatedUtc
 	ret["modified_utc"] = feed.ModifiedUtc
+	ret["user"], err = user.UserBaseInfo(feed.UserId)
 
 	return ret, nil
 }
