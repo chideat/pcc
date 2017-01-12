@@ -71,6 +71,9 @@ func (feed *Feed) Map() (map[string]interface{}, error) {
 	ret["created_utc"] = feed.CreatedUtc
 	ret["modified_utc"] = feed.ModifiedUtc
 	ret["user"], err = user.UserBaseInfo(feed.UserId)
+	if err != nil {
+		return nil, err
+	}
 
 	return ret, nil
 }
