@@ -19,18 +19,34 @@ const (
 	CONFIG_DEFAULT_PATH = "conf/app.conf"
 )
 
-var Conf struct {
-	Name        string `yaml:"name"`
-	Model       string `yaml:"model"`
-	Version     string `yaml:"version"`
-	HttpAddress string `yaml:"http_address"`
-	LogPath     string `yaml:"log_dir"`
-	Database    string `yaml:"database"`
-	Queue       struct {
-		NsqdAddress    string `yaml:"nsqd_address"`
-		LookupdAddress string `yaml:"lookupd_address"`
-	} `yaml:"queue"`
+type _config struct {
+	Group      uint8             `yaml:"group"`
+	Name       string            `yaml:"name"`
+	Model      string            `yaml:"model"`
+	Version    string            `yaml:"version"`
+	HTTPAddr   string            `yaml:"http_addr"`
+	RPCAddr    string            `yaml:"rpc_addr"`
+	LogPath    string            `yaml:"log_dir"`
+	StaticPath string            `yaml:"static_dir"`
+	Database   string            `yaml:"database"`
+	Caches     map[string]string `yaml:"caches"`
+
+	MQ struct {
+		ProducerTCPAddress  string `yaml:"producer_tcp_address"`
+		ProducerHTTPAddress string `yaml:"producer_http_address"`
+		ConsumerTCPAddress  string `yaml:"consumer_tcp_address"`
+		ConsumerHTTPAddress string `yaml:"consumer_http_address"`
+	} `yaml:"mq"`
 }
+
+func (conf *_config) IsDebug() bool {
+	if conf.Model == "debug" || os.Getenv("DEBUG") != "" {
+		return true
+	}
+	return false
+}
+
+var Conf _config
 
 func init() {
 	configFilePath := CONFIG_DEFAULT_PATH
@@ -44,8 +60,6 @@ func init() {
 		if Conf.Name == "" {
 			panic("Please specify app's name in config file.")
 		}
-
-		Conf.Model = os.Getenv("DEBUG")
 
 		// check log path
 		if logDirInfo, err := os.Stat(Conf.LogPath); err == nil {

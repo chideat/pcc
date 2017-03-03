@@ -14,11 +14,14 @@ func init() {
 
 	group := Handler.Group("/api/v1")
 	{
-		group.GET("/feeds/:id/like/users", v1.GetFeedLikeUsers)
-		group.POST("/feeds/:id/like", v1.FeedLike)
-		group.DELETE("/feeds/:id/like", v1.FeedUnlike)
-		// group.GET("/users/:user_id/following", v1.UserFollowing)
-		// group.POST("/users/:user_id/follow", v1.Auth, v1.FollowUser)
-		// group.DELETE("/users/:user_id/follow", v1.Auth, v1.UnfollowUser)
+		group.GET("/articles/:id/liked_users", v1.GetLikedUsers)
+		group.GET("/articles/:id/is_liked", v1.IsLiked)
+		group.POST("/articles/:id/like", v1.DoLike)
+		group.DELETE("/articles/:id/like", v1.UndoLike)
+
+		group.GET("/users/:id/followers", v1.GetFollowers)
+		group.GET("/users/:id/is_followed", v1.IsFollowed)
+		group.POST("/users/:id/follow", v1.Follow)
+		group.DELETE("/users/:id/follow", v1.Unfollow)
 	}
 }

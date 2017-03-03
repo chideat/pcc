@@ -13,6 +13,7 @@ import (
 	"github.com/chideat/glog"
 	. "github.com/chideat/pcc/action/modules/config"
 	"github.com/chideat/pcc/action/routes"
+	_ "github.com/chideat/pcc/action/service"
 	"github.com/facebookgo/grace/gracehttp"
 	"github.com/gorilla/handlers"
 )
@@ -28,8 +29,6 @@ func Version() {
 }
 
 func main() {
-	httpAddr := Conf.HttpAddress
-	flag.StringVar(&httpAddr, "httpaddr", httpAddr, "http address")
 	flag.BoolVar(&version, "version", false, "version info")
 
 	if !flag.Parsed() {
@@ -44,18 +43,16 @@ func main() {
 	signalChan := make(chan os.Signal, 1)
 	signal.Notify(signalChan, os.Interrupt)
 
-	Conf.Model = os.Getenv("DEBUG")
-
 	go func() {
 		time.Sleep(time.Millisecond * 50)
 		// record pid file
 		pidFilePath := path.Join(Conf.LogPath, Conf.Name+".pid")
-		if Conf.Model == "debug" {
+		if Conf.IsDebug() {
 			pidFilePath = path.Join(Conf.LogPath, Conf.Name+"_debug.pid")
 		}
 		pid := []byte(fmt.Sprintf("%d", os.Getpid()))
 		ioutil.WriteFile(pidFilePath, pid, 0666)
-		fmt.Printf("Server listen on address %s\n", httpAddr)
+		glog.Infof("Server listen on address %s\n", Conf.HTTPAddr)
 
 		<-signalChan
 		os.Remove(pidFilePath)
@@ -63,15 +60,15 @@ func main() {
 	}()
 
 	logFilePath := path.Join(Conf.LogPath, "access.log")
-	if Conf.Model == "debug" {
+	if Conf.IsDebug() {
 		logFilePath = path.Join(Conf.LogPath, "access_debug.log")
 	}
 	if logFile, err := os.OpenFile(logFilePath, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0666); err == nil {
 		hd := handlers.CombinedLoggingHandler(logFile, handlers.ProxyHeaders(routes.Handler))
-		if err = gracehttp.Serve(&http.Server{Addr: httpAddr, Handler: hd}); err != nil {
+		if err = gracehttp.Serve(&http.Server{Addr: Conf.HTTPAddr, Handler: hd}); err != nil {
 			glog.Error(err)
 		}
 	} else {
-		panic(err)
+		glog.Panic(err)
 	}
 }
