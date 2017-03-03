@@ -66,6 +66,11 @@ func (action *LikeAction) Map() (map[string]interface{}, error) {
 	output["target"] = action.Target
 	output["created_utc"] = action.CreatedUtc
 	output["is_friend"] = action.IsFriend
+	user, err := GetUserById(action.UserId)
+	if err != nil {
+		return nil, err
+	}
+	output["user"] = user.Info()
 
 	return output, nil
 }

@@ -31,6 +31,10 @@ type _config struct {
 	Database   string            `yaml:"database"`
 	Caches     map[string]string `yaml:"caches"`
 
+	RPC struct {
+		UserRPCAddr string `yaml:"user_rpc_addr"`
+	} `yaml:"rpc"`
+
 	MQ struct {
 		ProducerTCPAddress  string `yaml:"producer_tcp_address"`
 		ProducerHTTPAddress string `yaml:"producer_http_address"`

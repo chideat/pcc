@@ -61,6 +61,11 @@ func (action *FollowAction) Map() (map[string]interface{}, error) {
 	output["id"] = action.Id
 	output["target"] = action.Target
 	output["created_utc"] = action.CreatedUtc
+	user, err := GetUserById(action.UserId)
+	if err != nil {
+		return nil, err
+	}
+	output["user"] = user.Info()
 
 	return output, nil
 }
