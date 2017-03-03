@@ -3,8 +3,9 @@ package cache
 import (
 	"errors"
 	"fmt"
+
+	"github.com/chideat/glog"
 	"github.com/garyburd/redigo/redis"
-	"glog"
 	"stathat.com/c/consistent"
 )
 

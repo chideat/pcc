@@ -12,6 +12,12 @@ var (
 	ErrRecordNotFound = gorm.ErrRecordNotFound
 )
 
+const (
+	TYPE_USER    uint8 = 1
+	TYPE_ACTION        = 2
+	TYPE_ARTICLE       = 3
+)
+
 func init() {
 	var err error
 

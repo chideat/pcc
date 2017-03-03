@@ -1,3 +1,0 @@
-# PIG
-
-Public ID Generator

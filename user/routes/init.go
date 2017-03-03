@@ -15,8 +15,5 @@ func init() {
 	group := Handler.Group("/api/v1")
 	{
 		group.POST("/register", v1.Register)
-		group.POST("/login", v1.Login)
-		group.POST("/logout", v1.Logout)
-		group.GET("/users/:user_id", v1.GetUserInfo)
 	}
 }

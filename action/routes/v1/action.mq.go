@@ -26,7 +26,7 @@ func init() {
 		panic(err)
 	}
 
-	consumer.AddHandler(&ActionHandler{errorMessages: map[int64]error{}})
+	consumer.AddHandler(&ActionHandler{errorMessages: map[uint64]error{}})
 	consumer.SetLogger(nil, nsq.LogLevelError)
 	err = consumer.ConnectToNSQLookupd(Conf.Queue.LookupdAddress)
 	if err != nil {
@@ -35,7 +35,7 @@ func init() {
 }
 
 type ActionHandler struct {
-	errorMessages map[int64]error
+	errorMessages map[uint64]error
 }
 
 func (handler *ActionHandler) HandleMessage(msg *nsq.Message) error {

@@ -5,11 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/chideat/pcc/sdk/pig"
-	"github.com/chideat/pcc/sdk/user"
 	"github.com/golang/protobuf/proto"
-
-	. "github.com/chideat/pcc/pig/models"
+	"github.com/chideat/pcc/action/modules/pig"
 )
 
 func (action *LikeAction) _BeforeSave() error {
@@ -35,10 +32,7 @@ func (action *LikeAction) Create() error {
 
 	action.ModifiedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
 	if action.Id == 0 {
-		action.Id, err = pig.Int64(TYPE_ACTION)
-		if err != nil {
-			return errors.New("系统错误")
-		}
+		action.Id = pig.Next(1, TYPE_ACTION)
 		action.CreatedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
 	}
 	return db.Create(action).Error
@@ -61,7 +55,7 @@ func (action *LikeAction) Save() error {
 
 	action.ModifiedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
 	if action.Id == 0 {
-		action.Id, err = pig.Int64(TYPE_ACTION)
+		action.Id = pig.Next(1, TYPE_ACTION)
 		if err != nil {
 			return errors.New("系统错误")
 		}
@@ -81,22 +75,11 @@ func (action *LikeAction) Delete() error {
 	return action.Save()
 }
 
-func (action *LikeAction) UserInfo() (map[string]interface{}, error) {
-	return user.UserBaseInfo(action.UserId)
-}
-
 func (action *LikeAction) Map() (map[string]interface{}, error) {
 	output := map[string]interface{}{}
 	output["id"] = action.Id
 	output["target"] = action.Target
-	output["mood"] = action.Mood.String()
 	output["created_utc"] = action.CreatedUtc
-
-	info, err := user.UserBaseInfo(action.UserId)
-	if err != nil {
-		return nil, err
-	}
-	output["user"] = info
 
 	return output, nil
 }
@@ -123,7 +106,7 @@ func GetLikeActionById(id int64) (*LikeAction, error) {
 	}
 }
 
-func GetLikeActionByUserAndTarget(userId, target int64) (*LikeAction, error) {
+func GetLikeActionByUserAndTarget(userId, target uint64) (*LikeAction, error) {
 	if TYPE_USER != uint8(userId&25) {
 		return nil, errors.New("invalid user id")
 	}
@@ -139,25 +122,19 @@ func GetLikeActionByUserAndTarget(userId, target int64) (*LikeAction, error) {
 	}
 }
 
-func GetLikeActions(target int64, mood LikeMood, count int) ([]*LikeAction, int, error) {
+func GetLikeActions(target int64, count int) ([]*LikeAction, int, error) {
 	var (
 		total   int
 		actions []*LikeAction = []*LikeAction{}
 	)
 
 	_db_ := db.Model(&LikeAction{}).Where("deleted=false and target=?", target)
-	if mood != LikeMood_unknown {
-		_db_ = _db_.Where("mood=?", mood)
-	}
 	err := _db_.Order("modified_utc desc").Limit(count).Find(&actions).Error
 	if err != nil {
 		return nil, 0, err
 	}
 
 	_db_ = db.Model(&LikeAction{}).Where("deleted=false and target=?", target)
-	if mood != LikeMood_unknown {
-		_db_ = _db_.Where("mood=?", mood)
-	}
 	err = _db_.Count(&total).Error
 	if err != nil {
 		return nil, 0, err
@@ -166,19 +143,18 @@ func GetLikeActions(target int64, mood LikeMood, count int) ([]*LikeAction, int,
 	return actions, total, nil
 }
 
-func NewLikeAction(userId, target int64, mood LikeMood) (*LikeAction, error) {
+func NewLikeAction(userId, target uint64) (*LikeAction, error) {
 	var (
 		action = LikeAction{}
 		err    error
 	)
 
-	action.Id, err = pig.Int64(TYPE_ACTION)
+	action.Id = pig.Next(1, TYPE_ACTION)
 	if err != nil {
 		return nil, err
 	}
 	action.UserId = userId
 	action.Target = target
-	action.Mood = mood
 	action.CreatedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
 
 	return &action, nil
