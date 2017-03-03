@@ -9,9 +9,6 @@ message article {
 
     string data   = 6;
 
-    // action count
-    int64  like_count   = 11;
-
     int64  created_utc  = 14;
     int64  modified_utc = 15;
     bool   deleted      = 16;

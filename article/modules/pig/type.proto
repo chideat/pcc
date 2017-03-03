@@ -1,0 +1,10 @@
+syntax="proto3";
+
+package pig;
+
+enum TYPE {
+    UNKNOWN = 0;
+    USER    = 1;
+    ACTION  = 2;
+    ARTICLE = 3;
+}

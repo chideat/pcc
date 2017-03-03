@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"time"
 
+	. "github.com/chideat/pcc/article/modules/config"
 	"github.com/chideat/pcc/article/modules/pig"
-	"github.com/jinzhu/gorm"
+	"github.com/golang/glog"
 )
 
 func (article *Article) _BeforeSave() error {
@@ -27,7 +28,7 @@ func (article *Article) Save() error {
 
 	article.ModifiedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
 	if article.Id == 0 {
-		article.Id = pig.Next(1, TYPE_ARTICLE)
+		article.Id = pig.Next(Conf.Group, pig.TYPE_ARTICLE)
 		if err != nil {
 			return err
 		}
@@ -37,7 +38,6 @@ func (article *Article) Save() error {
 	} else {
 		err = db.Save(article).Error
 	}
-
 	return err
 }
 
@@ -45,15 +45,7 @@ func (article *Article) Delete() error {
 	article.Deleted = true
 	article.DeletedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
 
-	return article.Save()
-}
-
-func (article *Article) Like() error {
-	return db.Model(article).UpdateColumn("like_count", gorm.Expr("like_count+?", 1)).Error
-}
-
-func (article *Article) CancelLike() error {
-	return db.Model(article).UpdateColumn("like_count", gorm.Expr("like_count-?", 1)).Error
+	return db.Save(article).Error
 }
 
 func (article *Article) Map() (map[string]interface{}, error) {
@@ -65,10 +57,12 @@ func (article *Article) Map() (map[string]interface{}, error) {
 	ret["id"] = article.Id
 	ret["user_id"] = article.UserId
 	ret["data"] = article.Data
-	ret["like_count"] = article.LikeCount
 	ret["created_utc"] = article.CreatedUtc
 	ret["modified_utc"] = article.ModifiedUtc
+
+	ret["like_count"], err = GetArticleLikeCount(article.Id)
 	if err != nil {
+		glog.Error(err)
 		return nil, err
 	}
 

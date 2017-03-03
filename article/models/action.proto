@@ -2,14 +2,25 @@ syntax = "proto3";
 
 package models;
 
-message LikeAction {
-    uint64      id           = 1;
-    uint64      target       = 2;
-    uint64      user_id      = 3;
-    bool       is_friend    = 4;
+message FollowAction {
+    uint64 id               = 1;
+    uint64 user_id          = 2;
+    uint64 target           = 3;
 
     int64      created_utc  = 14;
     int64      modified_utc = 15;
+    bool       deleted      = 16;
+    int64      deleted_utc  = 17;
+}
+
+message LikeAction {
+    uint64     id           = 1;
+    uint64     target       = 2;
+    uint64     user_id      = 3;
+    bool       is_friend    = 4;
+
+    uint64     index        = 13;
+    int64      created_utc  = 14;
     bool       deleted      = 16;
     int64      deleted_utc  = 17;
 }
