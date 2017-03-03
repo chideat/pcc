@@ -16,9 +16,13 @@ func GetArticles(c *gin.Context) {
 	if count < 0 || count > 100 {
 		count = 10
 	}
-	cursor, _ := strconv.ParseInt(c.Query("cursor"), 10, 64)
+	cursor, _ := strconv.ParseUint(c.Query("cursor"), 10, 64)
 
-	articles, err := models.GetArticles(cursor, count)
+	var (
+		err      error
+		articles = []*models.Article{}
+	)
+	articles, cursor, err = models.GetArticles(count, cursor)
 	if err != nil {
 		JsonWithError(c, "1", err)
 		return
@@ -38,7 +42,7 @@ func GetArticles(c *gin.Context) {
 // Route: /articles/:id
 // Method: GET
 func GetArticle(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Params.ByName("id"), 10, 64)
 	if err != nil {
 		Json(c, "1", "invalid article id")
 		return
@@ -85,7 +89,7 @@ func CreateArticle(c *gin.Context) {
 // Route: /articles/:id
 // Method: PUT
 func UpdateArticle(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Params.ByName("id"), 10, 64)
 	if err != nil {
 		Json(c, "1", "invalid article id")
 		return
@@ -114,7 +118,7 @@ func UpdateArticle(c *gin.Context) {
 // Route: /articles/:id
 // Method: DELETE
 func DeleteArticle(c *gin.Context) {
-	id, err := strconv.ParseInt(c.Params.ByName("id"), 10, 64)
+	id, err := strconv.ParseUint(c.Params.ByName("id"), 10, 64)
 	if err != nil {
 		Json(c, "1", "invalid article id")
 		return

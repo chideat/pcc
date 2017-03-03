@@ -6,11 +6,13 @@ import (
 
 	. "github.com/chideat/pcc/article/modules/config"
 	"github.com/chideat/pcc/article/modules/pig"
+	"github.com/garyburd/redigo/redis"
 	"github.com/golang/glog"
+	"github.com/golang/protobuf/proto"
 )
 
 func (article *Article) _BeforeSave() error {
-	if article.UserId == 0 {
+	if uint8(255&article.UserId) != uint8(pig.TYPE_USER) {
 		return fmt.Errorf("invalid user_id")
 	}
 	if article.Data == "" {
@@ -38,14 +40,37 @@ func (article *Article) Save() error {
 	} else {
 		err = db.Save(article).Error
 	}
-	return err
+	if err != nil {
+		return err
+	}
+
+	go article.cache()
+
+	return nil
 }
 
 func (article *Article) Delete() error {
 	article.Deleted = true
 	article.DeletedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
 
-	return db.Save(article).Error
+	err := db.Save(article).Error
+	if err != nil {
+		return err
+	}
+
+	go article.cache()
+
+	return nil
+}
+
+func (article *Article) cache() {
+	key := fmt.Sprintf("index://articles/%d", article.Id)
+
+	data, _ := proto.Marshal(article)
+	_, err := cache.Do("SET", key, data)
+	if err != nil {
+		glog.Error(err)
+	}
 }
 
 func (article *Article) Map() (map[string]interface{}, error) {
@@ -69,25 +94,42 @@ func (article *Article) Map() (map[string]interface{}, error) {
 	return ret, nil
 }
 
-func GetArticleById(id int64) (*Article, error) {
+func GetArticleById(id uint64) (*Article, error) {
 	article := Article{}
-	err := db.Where("deleted=false").First(&article, id).Error
+
+	key := fmt.Sprintf("index://articles/%d", id)
+	data, err := redis.Bytes(cache.Do("GET", key))
+	if err == nil {
+		err = proto.Unmarshal(data, &article)
+		if err == nil {
+			return &article, nil
+		}
+	}
+
+	err = db.Where("deleted=false").First(&article, id).Error
 	if err == ErrRecordNotFound {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	} else {
+		go article.cache()
+
 		return &article, nil
 	}
 }
 
-func GetArticles(cursor int64, limit int) ([]*Article, error) {
+func GetArticles(count int, cursor uint64) ([]*Article, uint64, error) {
 	articles := []*Article{}
 
-	err := db.Where("deleted=false and created_utc>?", cursor).Order("created_utc asc").Limit(limit).Find(&articles).Error
+	err := db.Where("deleted=false and created_utc>?", cursor).
+		Order("created_utc asc").Limit(count).Find(&articles).Error
 	if err != nil {
-		return nil, err
-	} else {
-		return articles, nil
+		return nil, 0, err
 	}
+	if len(articles) == count {
+		cursor = uint64(articles[len(articles)-1].CreatedUtc)
+	} else {
+		cursor = 0
+	}
+	return articles, cursor, nil
 }
