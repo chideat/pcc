@@ -1,17 +1,23 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
 	"path"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/chideat/glog"
+	"github.com/chideat/pcc/action/models"
 	. "github.com/chideat/pcc/action/modules/config"
+	"github.com/chideat/pcc/action/modules/pig"
 	"github.com/chideat/pcc/action/routes"
 	_ "github.com/chideat/pcc/action/service"
 	"github.com/facebookgo/grace/gracehttp"
@@ -19,16 +25,98 @@ import (
 )
 
 var (
-	BuildTimestamp string
-	BuildCommit    string
-	version        bool
+	BuildTimestamp  string
+	BuildCommit     string
+	version         bool
+	friendsFilePath string
+	likeFilePath    string
 )
 
 func Version() {
 	fmt.Printf("Build at %s, based on commit %s\n", BuildTimestamp, BuildCommit)
 }
 
+func importFriends(filePath string) error {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	reader := bufio.NewReader(f)
+
+	for {
+		line, err := reader.ReadString('\n')
+		if err == io.EOF {
+			break
+		}
+		line = strings.Trim(line, "\r\n")
+		parts := strings.Split(line, ",")
+
+		action := models.FollowAction{}
+		action.UserId, err = strconv.ParseUint(parts[0], 10, 64)
+		if err != nil {
+			fmt.Println(line, err)
+			continue
+		}
+		action.Target, err = strconv.ParseUint(parts[1], 10, 64)
+		if err != nil {
+			fmt.Println(line, err)
+			continue
+		}
+		action.Id = pig.Next(Conf.Group, pig.TYPE_ACTION)
+		err = action.Broadcast(models.RequestMethod_Add)
+		if err != nil {
+			fmt.Println(line, err)
+		}
+	}
+	return nil
+}
+
+func importLike(filePath string) error {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	reader := bufio.NewReader(f)
+
+	action := models.FollowAction{}
+	for {
+		line, err := reader.ReadString('\n')
+		if err == io.EOF {
+			break
+		}
+		line = strings.Trim(line, "\r\n")
+		parts := strings.Split(line, ":")
+
+		action.Target, err = strconv.ParseUint(parts[0], 10, 64)
+		if err != nil {
+			fmt.Println(line, err)
+			continue
+		}
+
+		for _, userIdStr := range strings.Split(strings.Trim(parts[1], "[]"), ",") {
+			action.UserId, err = strconv.ParseUint(userIdStr, 10, 64)
+			if err != nil {
+				fmt.Println(action.Target, userIdStr, "ignore")
+				continue
+			}
+			action.Id = pig.Next(Conf.Group, pig.TYPE_ACTION)
+			err = action.Broadcast(models.RequestMethod_Add)
+			if err != nil {
+				fmt.Println(action.Target, action.UserId, "ignore")
+				continue
+			}
+		}
+	}
+	return nil
+}
+
 func main() {
+	flag.StringVar(&friendsFilePath, "f", "", "friends file path")
+	flag.StringVar(&likeFilePath, "l", "", "like file path")
 	flag.BoolVar(&version, "version", false, "version info")
 
 	if !flag.Parsed() {
@@ -37,6 +125,22 @@ func main() {
 
 	if version {
 		Version()
+		os.Exit(0)
+	}
+
+	if friendsFilePath != "" {
+		err := importFriends(friendsFilePath)
+		if err != nil {
+			panic(err)
+		}
+		os.Exit(0)
+	}
+
+	if likeFilePath != "" {
+		err := importLike(likeFilePath)
+		if err != nil {
+			panic(err)
+		}
 		os.Exit(0)
 	}
 
