@@ -1,0 +1,19 @@
+syntax="proto3";
+
+package models;
+
+service ArticleRPC {
+    rpc GetArticleById(Article) returns (Article) {}
+}
+
+message Article {
+    uint64 id      = 1;
+    uint64 user_id = 2;
+
+    string data   = 6;
+
+    int64  created_utc  = 14;
+    int64  modified_utc = 15;
+    bool   deleted      = 16;
+    int64  deleted_utc  = 17;
+}

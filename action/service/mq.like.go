@@ -59,7 +59,18 @@ func (handler *LikeActionHandler) HandleMessage(msg *nsq.Message) error {
 
 	switch req.Method {
 	case models.RequestMethod_Add:
-		action.Deleted = false
+		article, err := models.GetArticleById(action.Target)
+		if err != nil {
+			glog.Error(err)
+		} else {
+			fa, err := models.GetFollowAction(article.UserId, action.UserId)
+			if err != nil {
+				glog.Error(err)
+			} else if fa != nil {
+				action.IsFriend = true
+			}
+		}
+
 		err = action.Save()
 	case models.RequestMethod_Delete:
 		err = action.Delete()

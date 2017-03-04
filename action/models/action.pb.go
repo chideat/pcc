@@ -7,12 +7,14 @@ Package models is a generated protocol buffer package.
 
 It is generated from these files:
 	action.proto
+	article.proto
 	request.proto
 	user.proto
 
 It has these top-level messages:
 	FollowAction
 	LikeAction
+	Article
 	Request
 	User
 */

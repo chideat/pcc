@@ -32,7 +32,8 @@ type _config struct {
 	Caches     map[string]string `yaml:"caches"`
 
 	RPC struct {
-		UserRPCAddr string `yaml:"user_rpc_addr"`
+		UserRPCAddr    string `yaml:"user_rpc_addr"`
+		ArticleRPCAddr string `yaml:"article_rpc_addr"`
 	} `yaml:"rpc"`
 
 	MQ struct {

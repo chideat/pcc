@@ -38,7 +38,7 @@ var RequestMethod_value = map[string]int32{
 func (x RequestMethod) String() string {
 	return proto.EnumName(RequestMethod_name, int32(x))
 }
-func (RequestMethod) EnumDescriptor() ([]byte, []int) { return fileDescriptor1, []int{0} }
+func (RequestMethod) EnumDescriptor() ([]byte, []int) { return fileDescriptor2, []int{0} }
 
 type Request struct {
 	Id     int64         `protobuf:"varint,1,opt,name=id" json:"id,omitempty"`
@@ -49,7 +49,7 @@ type Request struct {
 func (m *Request) Reset()                    { *m = Request{} }
 func (m *Request) String() string            { return proto.CompactTextString(m) }
 func (*Request) ProtoMessage()               {}
-func (*Request) Descriptor() ([]byte, []int) { return fileDescriptor1, []int{0} }
+func (*Request) Descriptor() ([]byte, []int) { return fileDescriptor2, []int{0} }
 
 func (m *Request) GetId() int64 {
 	if m != nil {
@@ -77,9 +77,9 @@ func init() {
 	proto.RegisterEnum("models.RequestMethod", RequestMethod_name, RequestMethod_value)
 }
 
-func init() { proto.RegisterFile("request.proto", fileDescriptor1) }
+func init() { proto.RegisterFile("request.proto", fileDescriptor2) }
 
-var fileDescriptor1 = []byte{
+var fileDescriptor2 = []byte{
 	// 165 bytes of a gzipped FileDescriptorProto
 	0x1f, 0x8b, 0x08, 0x00, 0x00, 0x09, 0x6e, 0x88, 0x02, 0xff, 0x54, 0x8e, 0x41, 0x0b, 0x82, 0x40,
 	0x10, 0x46, 0x9b, 0xb5, 0x56, 0x18, 0x52, 0x96, 0x81, 0xc0, 0xa3, 0x74, 0x92, 0x20, 0x0f, 0x75,
