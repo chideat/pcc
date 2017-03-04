@@ -90,6 +90,12 @@ func (article *Article) Map() (map[string]interface{}, error) {
 		glog.Error(err)
 		return nil, err
 	}
+	user, err := GetUserById(article.UserId)
+	if err != nil {
+		glog.Error(err)
+		return nil, err
+	}
+	ret["user"] = user.Info()
 
 	return ret, nil
 }
