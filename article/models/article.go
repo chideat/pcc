@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/chideat/glog"
 	. "github.com/chideat/pcc/article/modules/config"
 	"github.com/chideat/pcc/article/modules/pig"
 	"github.com/garyburd/redigo/redis"
-	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -90,6 +90,12 @@ func (article *Article) Map() (map[string]interface{}, error) {
 		glog.Error(err)
 		return nil, err
 	}
+	user, err := GetUserById(article.UserId)
+	if err != nil {
+		glog.Error(err)
+		return nil, err
+	}
+	ret["user"] = user.Info()
 
 	return ret, nil
 }
