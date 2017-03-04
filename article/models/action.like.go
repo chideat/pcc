@@ -20,5 +20,9 @@ func (action *LikeAction) Delete() error {
 
 func GetArticleLikeCount(id uint64) (int, error) {
 	key := fmt.Sprintf("index://articles/%d/like_count", id)
-	return redis.Int(cache.Do("GET", key))
+	count, err := redis.Int(cache.Do("GET", key))
+	if err == nil || err == redis.ErrNil {
+		return count, nil
+	}
+	return 0, err
 }

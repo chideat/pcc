@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/chideat/glog"
 	. "github.com/chideat/pcc/article/modules/config"
 	"github.com/chideat/pcc/article/modules/pig"
 	"github.com/garyburd/redigo/redis"
-	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 )
 
