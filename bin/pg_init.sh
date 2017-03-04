@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-HOME=/mnt
+HOME=/db
 
 DATADIR=$HOME/data/pgsql
 
