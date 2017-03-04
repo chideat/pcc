@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"net"
 
 	"github.com/chideat/pcc/user/models"
@@ -12,11 +13,23 @@ import (
 type RPCService struct{}
 
 func (serv *RPCService) GetUserById(ctx context.Context, user *models.User) (*models.User, error) {
-	return models.GetUserById(user.Id)
+	user, err := models.GetUserById(user.Id)
+	if err != nil {
+		return nil, err
+	} else if user == nil {
+		return nil, fmt.Errorf("user not exists")
+	}
+	return user, nil
 }
 
 func (serv *RPCService) GetUserByName(ctx context.Context, user *models.User) (*models.User, error) {
-	return models.GetUserByName(user.Name)
+	user, err := models.GetUserByName(user.Name)
+	if err != nil {
+		return nil, err
+	} else if user == nil {
+		return nil, fmt.Errorf("user not exists")
+	}
+	return user, nil
 }
 
 func StartRPCService(addr string) error {
