@@ -27,7 +27,7 @@ func (user *User) Save() error {
 	var err error
 
 	user.ModifiedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
-	if user.Id == 0 {
+	if user.Id == 0 || user.CreatedUtc == 0 {
 		// user.Id = pig.Next(Conf.Group, pig.TYPE_USER)
 		user.CreatedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
 		err = db.Create(user).Error

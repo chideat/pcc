@@ -10,8 +10,8 @@ import (
 // Method: POST
 func Register(c *gin.Context) {
 	var req struct {
-		Name     string `form:"name" json:"name" binding:"required"`
-		Password string `form:"password" json:"password" binding:"required"`
+		Id   uint64 `form:"id" json:"id" binding:"required"`
+		Name string `form:"name" json:"name" binding:"required"`
 	}
 
 	err := c.Bind(&req)
@@ -20,7 +20,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	user, err := models.NewUser(req.Name, req.Password)
+	user, err := models.NewUser(req.Name, "pcc")
 	if err != nil {
 		JsonWithError(c, err)
 		return
