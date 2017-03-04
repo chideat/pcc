@@ -13,7 +13,7 @@ import (
 	"github.com/chideat/glog"
 	. "github.com/chideat/pcc/article/modules/config"
 	"github.com/chideat/pcc/article/routes"
-	_ "github.com/chideat/pcc/article/service"
+	"github.com/chideat/pcc/article/service"
 	"github.com/facebookgo/grace/gracehttp"
 	"github.com/gorilla/handlers"
 )
@@ -57,6 +57,8 @@ func main() {
 		os.Remove(pidFilePath)
 		os.Exit(0)
 	}()
+
+	go service.StartRPCService(Conf.RPCAddr)
 
 	logFilePath := path.Join(Conf.LogPath, "access.log")
 	if Conf.IsDebug() {

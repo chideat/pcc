@@ -2,8 +2,11 @@ syntax="proto3";
 
 package models;
 
+service ArticleRPC {
+    rpc GetArticleById(Article) returns (Article) {}
+}
 
-message article {
+message Article {
     uint64 id      = 1;
     uint64 user_id = 2;
 
