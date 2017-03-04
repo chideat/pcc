@@ -66,17 +66,10 @@ func IsLiked(c *gin.Context) {
 	}
 
 	if action == nil || action.Deleted {
-		Json(c, "200001", "未点过赞")
+		JsonWithData(c, "0", "OK", map[string]interface{}{"is_liked": false})
 		return
 	}
-
-	ret, err := action.Map()
-	if err != nil {
-		glog.Error(err)
-		Json(c, "0", "OK")
-		return
-	}
-	JsonWithData(c, "0", "OK", ret)
+	JsonWithData(c, "0", "OK", map[string]interface{}{"is_liked": true})
 }
 
 // Route: /articles/:id/like
