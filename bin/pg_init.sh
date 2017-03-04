@@ -1,9 +1,9 @@
 #!/bin/bash
 
+
 HOME=/mnt
 
 DATADIR=$HOME/data/pgsql
-mkdir -p $DATADIR
 
 if [ ! -d $DATADIR ]; then
     initdb -D $DATADIR

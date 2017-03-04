@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
-HOME=`pwd`
-HOME_DATA=$PWD"/data/ssdb"
+HOME_DATA="/ssdb/data"
 
-for port in 7027 7028 7029; do
+for port in 6379; do
     data_dir=$HOME_DATA/ssdb_$port
     mkdir -p $data_dir
 
