@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"net"
 
 	"github.com/chideat/pcc/article/models"
@@ -12,7 +13,13 @@ import (
 type RPCService struct{}
 
 func (serv *RPCService) GetArticleById(ctx context.Context, article *models.Article) (*models.Article, error) {
-	return models.GetArticleById(article.Id)
+	article, err := models.GetArticleById(article.Id)
+	if err != nil {
+		return nil, err
+	} else if article == nil {
+		return nil, fmt.Errorf("article not exists")
+	}
+	return article, nil
 }
 
 func StartRPCService(addr string) error {
