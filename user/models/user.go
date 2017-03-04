@@ -121,20 +121,12 @@ func NewUser(id uint64, name, password string) (*User, error) {
 	// 	return nil, NewUserError("201003", "密码无效")
 	// }
 
-	user, err := GetUserByName(name)
-	if err != nil {
-		glog.Error(err)
-		return nil, NewUserError("100001", "系统错误")
-	} else if user != nil {
-		return nil, NewUserError("201005", "用户名已经存在")
-	}
-
-	user = &User{}
+	user := &User{}
 	user.Id = id
 	user.Name = name
 	user.Password = password
 
-	err = user.Save()
+	err := user.Save()
 	if err != nil {
 		return nil, NewUserError("100001", "创建用户失败")
 	}

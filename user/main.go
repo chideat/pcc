@@ -1,16 +1,21 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"os"
 	"os/signal"
 	"path"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/chideat/glog"
+	"github.com/chideat/pcc/user/models"
 	. "github.com/chideat/pcc/user/modules/config"
 	"github.com/chideat/pcc/user/routes"
 	"github.com/chideat/pcc/user/service"
@@ -28,11 +33,55 @@ func Version() {
 	fmt.Printf("Build at %s, based on commit %s\n", BuildTimestamp, BuildCommit)
 }
 
+func importUsers(filePath string) error {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+
+	reader := bufio.NewReader(f)
+
+	for {
+		line, err := reader.ReadString('\n')
+		if err == io.EOF {
+			break
+		}
+		line = strings.Trim(line, "\r\n")
+		parts := strings.Split(line, ",")
+
+		user := models.User{}
+		user.Id, err = strconv.ParseUint(parts[0], 10, 64)
+		if err != nil {
+			fmt.Println(line, err)
+			continue
+		}
+		user.Name = parts[1]
+
+		err = user.Save()
+		if err != nil {
+			fmt.Println(line, err)
+		}
+	}
+	return nil
+}
+
 func main() {
+	var userFilePath string
+
 	flag.BoolVar(&version, "version", false, "version info")
+	flag.StringVar(&userFilePath, "u", "", "user file path")
 
 	if !flag.Parsed() {
 		flag.Parse()
+	}
+
+	if userFilePath != "" {
+		_, err := os.Stat(userFilePath)
+		if !os.IsNotExist(err) {
+			importUsers(userFilePath)
+		}
+		os.Exit(0)
 	}
 
 	if version {
