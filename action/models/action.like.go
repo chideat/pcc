@@ -57,7 +57,6 @@ func (action *LikeAction) Broadcast(method RequestMethod) error {
 	req.Data = action.Bytes()
 	data, _ := proto.Marshal(&req)
 	return producer.Publish("pcc.action.like", data)
-
 }
 
 func (action *LikeAction) Map() (map[string]interface{}, error) {

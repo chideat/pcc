@@ -71,6 +71,7 @@ func (handler *LikeActionHandler) HandleMessage(msg *nsq.Message) error {
 			}
 		}
 
+		action.Deleted = false
 		err = action.Save()
 	case models.RequestMethod_Delete:
 		err = action.Delete()

@@ -37,16 +37,22 @@ func init() {
 
 		// TODO
 		// single table may have problems in data increase in w.
-		if !db.HasTable(&LikeAction{}) {
-			if err = db.CreateTable(&LikeAction{}).Error; err != nil {
-				glog.Panic(err)
+		for _, table := range []interface{}{&LikeAction{}, &FollowAction{}} {
+			if !db.HasTable(table) {
+				if err = db.CreateTable(table).Error; err != nil {
+					glog.Panic(err)
+				}
 			}
+			db.AutoMigrate(table)
 		}
-		db.AutoMigrate(&LikeAction{})
 
 		db.Model(&LikeAction{}).AddIndex("idx_like_target", "target")
 		db.Model(&LikeAction{}).AddIndex("idx_like_user", "user_id")
 		db.Model(&LikeAction{}).AddUniqueIndex("idx_like_user_target", "user_id", "target")
+
+		db.Model(&FollowAction{}).AddIndex("idx_follow_target", "target")
+		db.Model(&FollowAction{}).AddIndex("idx_follow_user", "user_id")
+		db.Model(&FollowAction{}).AddUniqueIndex("idx_follow_user_target", "user_id", "target")
 	}
 
 	{
@@ -55,6 +61,5 @@ func init() {
 		if err != nil {
 			panic(err)
 		}
-		producer.SetLogger(nil, nsq.LogLevelError)
 	}
 }

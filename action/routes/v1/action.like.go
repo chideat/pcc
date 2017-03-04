@@ -105,7 +105,11 @@ func DoLike(c *gin.Context) {
 		return
 	}
 
-	action, _ = models.NewLikeAction(userId, target)
+	if action != nil {
+		action.Deleted = false
+	} else {
+		action, _ = models.NewLikeAction(userId, target)
+	}
 
 	err = action.Broadcast(models.RequestMethod_Add)
 	if err != nil {
