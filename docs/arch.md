@@ -1,5 +1,7 @@
 # 类Facebook Like 系统架构设计
 
+![架构图](arch.png)
+
 
 ### 难点
 * 每秒`like`计数器的访问量达到 30w/s, 单机关系数据的QPS 在12w/s 左右?
