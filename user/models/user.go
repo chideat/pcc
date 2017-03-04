@@ -6,9 +6,7 @@ import (
 	"time"
 
 	"github.com/chideat/glog"
-	. "github.com/chideat/pcc/user/modules/config"
 	. "github.com/chideat/pcc/user/modules/error"
-	"github.com/chideat/pcc/user/modules/pig"
 	"github.com/garyburd/redigo/redis"
 	"github.com/golang/protobuf/proto"
 )
@@ -30,10 +28,7 @@ func (user *User) Save() error {
 
 	user.ModifiedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
 	if user.Id == 0 {
-		user.Id = pig.Next(Conf.Group, pig.TYPE_USER)
-		if err != nil {
-			return NewUserError("100001", "系统错误")
-		}
+		// user.Id = pig.Next(Conf.Group, pig.TYPE_USER)
 		user.CreatedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
 		err = db.Create(user).Error
 	} else {

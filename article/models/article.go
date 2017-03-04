@@ -5,14 +5,12 @@ import (
 	"time"
 
 	"github.com/chideat/glog"
-	. "github.com/chideat/pcc/article/modules/config"
-	"github.com/chideat/pcc/article/modules/pig"
 	"github.com/garyburd/redigo/redis"
 	"github.com/golang/protobuf/proto"
 )
 
 func (article *Article) _BeforeSave() error {
-	if uint8(255&article.UserId) != uint8(pig.TYPE_USER) {
+	if article.UserId == 0 {
 		return fmt.Errorf("invalid user_id")
 	}
 	if article.Data == "" {
@@ -30,10 +28,6 @@ func (article *Article) Save() error {
 
 	article.ModifiedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
 	if article.Id == 0 {
-		article.Id = pig.Next(Conf.Group, pig.TYPE_ARTICLE)
-		if err != nil {
-			return err
-		}
 		article.CreatedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
 
 		err = db.Create(article).Error
