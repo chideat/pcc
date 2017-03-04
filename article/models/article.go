@@ -85,7 +85,7 @@ func (article *Article) Map() (map[string]interface{}, error) {
 	ret["created_utc"] = article.CreatedUtc
 	ret["modified_utc"] = article.ModifiedUtc
 
-	ret["like_count"], err = GetArticleLikeCount(article.Id)
+	ret["liked_count"], err = GetArticleLikeCount(article.Id)
 	if err != nil {
 		glog.Error(err)
 		return nil, err

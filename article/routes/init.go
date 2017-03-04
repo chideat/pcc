@@ -16,6 +16,7 @@ func init() {
 	{
 		group.GET("/articles", v1.GetArticles)
 		group.GET("/articles/:id", v1.GetArticle)
+		group.GET("/articles/:id/liked_count", v1.GetArticleLikeCount)
 		group.POST("/articles", v1.CreateArticle)
 		group.PUT("/articles/:id", v1.UpdateArticle)
 		group.DELETE("/articles/:id", v1.DeleteArticle)

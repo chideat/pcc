@@ -65,6 +65,20 @@ func GetArticle(c *gin.Context) {
 	JsonWithData(c, "0", "OK", ret)
 }
 
+func GetArticleLikeCount(c *gin.Context) {
+	id, err := strconv.ParseUint(c.Params.ByName("id"), 10, 64)
+	if err != nil {
+		Json(c, "1", "invalid article id")
+		return
+	}
+	count, err := models.GetArticleLikeCount(id)
+	if err != nil {
+		Json(c, "1", err.Error())
+		return
+	}
+	JsonWithData(c, "0", "OK", map[string]int{"liked_count": count})
+}
+
 // Route: /articles
 // Method: POST
 func CreateArticle(c *gin.Context) {
