@@ -114,12 +114,12 @@ func GetUserByName(name string) (*User, error) {
 }
 
 func NewUser(name, password string) (*User, error) {
-	if !name_reg.MatchString(name) {
-		return nil, NewUserError("201002", "用户名无效")
-	}
-	if !password_reg.MatchString(password) {
-		return nil, NewUserError("201003", "密码无效")
-	}
+	// if !name_reg.MatchString(name) {
+	// 	return nil, NewUserError("201002", "用户名无效")
+	// }
+	// if !password_reg.MatchString(password) {
+	// 	return nil, NewUserError("201003", "密码无效")
+	// }
 
 	user, err := GetUserByName(name)
 	if err != nil {
