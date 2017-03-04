@@ -20,7 +20,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	user, err := models.NewUser(req.Name, "pcc")
+	user, err := models.NewUser(req.Id, req.Name, "pcc")
 	if err != nil {
 		JsonWithError(c, err)
 		return

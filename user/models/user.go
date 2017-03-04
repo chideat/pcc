@@ -113,7 +113,7 @@ func GetUserByName(name string) (*User, error) {
 	}
 }
 
-func NewUser(name, password string) (*User, error) {
+func NewUser(id uint64, name, password string) (*User, error) {
 	// if !name_reg.MatchString(name) {
 	// 	return nil, NewUserError("201002", "用户名无效")
 	// }
@@ -130,6 +130,7 @@ func NewUser(name, password string) (*User, error) {
 	}
 
 	user = &User{}
+	user.Id = id
 	user.Name = name
 	user.Password = password
 
