@@ -7,6 +7,8 @@ import (
 
 	. "github.com/chideat/pcc/action/modules/config"
 	"github.com/chideat/pcc/action/modules/pig"
+	"github.com/garyburd/redigo/redis"
+	"github.com/golang/glog"
 	"github.com/golang/protobuf/proto"
 )
 
@@ -39,6 +41,9 @@ func (action *FollowAction) Save() error {
 	} else {
 		err = db.Save(action).Error
 	}
+	go action.cache()
+	// save list
+	_, err = cache.Do("ZADD", fmt.Sprintf("index://target/%d/follow", action.Target), action.ModifiedUtc, action.Id)
 	return err
 }
 
@@ -46,7 +51,24 @@ func (action *FollowAction) Delete() error {
 	action.Deleted = true
 	action.DeletedUtc = time.Now().Local().UnixNano() / int64(time.Millisecond)
 
-	return db.Save(action).Error
+	err := db.Save(action).Error
+	if err != nil {
+		return err
+	}
+	go action.cache()
+	_, err = cache.Do("ZREM", fmt.Sprintf("index://target/%d/follow", action.Target), action.Id)
+	return err
+}
+
+func (action *FollowAction) cache() {
+	_, err := cache.Do("SET", fmt.Sprintf("index://target/%d", action.Id), action.Bytes())
+	if err != nil {
+		glog.Error(err)
+	}
+	_, err = cache.Do("SET", fmt.Sprintf("index://target?target_id=%d&user_id=%d", action.Target, action.UserId), action.Bytes())
+	if err != nil {
+		glog.Error(err)
+	}
 }
 
 func (action *FollowAction) Broadcast(method RequestMethod) error {
@@ -75,18 +97,28 @@ func (action *FollowAction) Bytes() []byte {
 	return data
 }
 
-func GetFollowActionById(id int64) (*FollowAction, error) {
+func GetFollowActionById(id uint64) (*FollowAction, error) {
 	if TYPE_ACTION != uint8(id&255) {
 		return nil, errors.New("invalid id")
 	}
 
 	action := FollowAction{}
-	err := db.Where("deleted=false").First(&action, id).Error
+	data, err := redis.Bytes(cache.Do("GET", fmt.Sprintf("index://target/%d", id)))
+	if err == nil {
+		err = proto.Unmarshal(data, &action)
+		if err == nil {
+			return &action, nil
+		}
+	}
+
+	err = db.Where("deleted=false").First(&action, id).Error
 	if err == ErrRecordNotFound {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	} else {
+		go action.cache()
+
 		return &action, nil
 	}
 }
@@ -97,12 +129,22 @@ func GetFollowAction(userId, target uint64) (*FollowAction, error) {
 	}
 
 	action := FollowAction{}
-	err := db.Where("user_id=? and target=?", userId, target).First(&action).Error
+	data, err := redis.Bytes(cache.Do("GET", fmt.Sprintf("index://target?target_id=%d&user_id=%d", action.Target, action.UserId)))
+	if err == nil {
+		err = proto.Unmarshal(data, &action)
+		if err == nil {
+			return &action, nil
+		}
+	}
+
+	err = db.Where("user_id=? and target=?", userId, target).First(&action).Error
 	if err == ErrRecordNotFound {
 		return nil, nil
 	} else if err != nil {
 		return nil, err
 	} else {
+		go action.cache()
+
 		return &action, nil
 	}
 }
@@ -110,17 +152,44 @@ func GetFollowAction(userId, target uint64) (*FollowAction, error) {
 func GetFollowActions(target int64, count int, cursor uint64) ([]*FollowAction, uint64, error) {
 	var actions = []*FollowAction{}
 
-	err := db.Where("deleted=false and target=? and modified_utc<", target, cursor).
-		Order("modified_utc desc").Limit(count).Find(&actions).Error
-	if err != nil {
-		return nil, 0, err
+	if cursor == 0 {
+		cursor = uint64(1 << 63)
 	}
-	if len(actions) == count {
-		cursor = uint64(actions[len(actions)-1].ModifiedUtc)
+	vals, err := redis.Values(cache.Do("ZREVRANGEBYSCORE", fmt.Sprintf("index://target/%d/follow", target),
+		cursor, 0, "LIMIT", 0, count))
+
+	if err == nil {
+		for _, val := range vals {
+			id, err := redis.Uint64(val, nil)
+			if err != nil {
+				glog.Error(err)
+				continue
+			}
+			action, err := GetFollowActionById(id)
+			if err != nil {
+				glog.Error(err)
+				continue
+			}
+			actions = append(actions, action)
+			cursor = uint64(action.ModifiedUtc)
+		}
+		if len(vals) < count {
+			cursor = 0
+		}
+		return actions, cursor, nil
 	} else {
-		cursor = 0
+		err = db.Where("deleted=false and target=? and modified_utc<", target, cursor).
+			Order("modified_utc desc").Limit(count).Find(&actions).Error
+		if err != nil {
+			return nil, 0, err
+		}
+		if len(actions) == count {
+			cursor = uint64(actions[len(actions)-1].ModifiedUtc)
+		} else {
+			cursor = 0
+		}
+		return actions, cursor, nil
 	}
-	return actions, cursor, nil
 }
 
 func NewFollowAction(userId, target uint64) (*FollowAction, error) {

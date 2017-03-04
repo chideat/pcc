@@ -2,6 +2,7 @@ package models
 
 import (
 	"github.com/chideat/glog"
+	. "github.com/chideat/pcc/action/modules/cache"
 	. "github.com/chideat/pcc/action/modules/config"
 	"github.com/jinzhu/gorm"
 	_ "github.com/lib/pq"
@@ -10,6 +11,7 @@ import (
 
 var (
 	db                *gorm.DB
+	cache             *Cache
 	producer          *nsq.Producer
 	ErrRecordNotFound = gorm.ErrRecordNotFound
 )
@@ -62,4 +64,6 @@ func init() {
 			panic(err)
 		}
 	}
+
+	cache = NewCache(Conf.Caches)
 }
