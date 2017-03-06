@@ -1,5 +1,10 @@
 # PCC API
 
+> 服务器:
+> user = pcc1:7000
+> article = pcc2:7020
+> action = pcc3:7010
+
 
 ###  API 列表
 
@@ -20,12 +25,3 @@
 | action  | GET     | /api/v1/users/:id/is_followed    | 该用户否被用户关注      |
 | action  | POST    | /api/v1/users/:id/follow         | 关注该用户             |
 | action  | DELETE  | /api/v1/users/:id/follow         | 取消关注该用户          |
-
-
-## API 说明
-
-### 获取文章的点赞数
-
-```bash
-GET /api/v1/articles/1/liked_count
-```
